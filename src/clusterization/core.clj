@@ -26,13 +26,39 @@
   [p
    points
    distance-fn
-   alpha]
-  (reduce + (map #(Math/exp (* (- alpha) %)) (map #(distance-fn p %) points))))
+   coef]
+  (list
+   (reduce +
+           (map #(Math/exp (* (- coef) %))
+                (map #(distance-fn p %) points)))
+   p))
 
 (defn get-potentials
   [points
+   distance-fn
+   alpha]
+  (map #(get-point-potential % points distance-fn alpha) points))
+
+(defn update-potentials
+  [potentials
+   core
+   beta
    distance-fn]
-  (println points))
+  (let [core-potential (first core)
+        core-point (last core)]
+    (map #(- (first %) (* core-potential (Math/exp (distance-fn core-point (last %))))) potentials)))
+
+(defn clusterize
+  [points
+   distance-fn]
+  (let [radius-a 1.5
+        radius-b (* radius-a 1.5)
+        alpha (/ 4 (Math/pow radius-a 2))
+        beta (/ 4 (Math/pow radius-b 2))
+        potentials (get-potentials points distance-fn alpha)
+        first-core (apply max-key first potentials)]
+    (println first-core)
+    (update-potentials potentials first-core beta distance-fn)))
 
 (defn -main
   [& args]
@@ -40,5 +66,5 @@
     ;(let [data-points (read-file (first args))
      ;     distance (if (= (last args) "hamming") hamming-distance euclid-distance)]
       ;(clusterize data-points distance))
-      (get-potentials '((0 3) (1 5) (2 4)) euclid-distance))
+      (clusterize '((0 3) (1 5) (2 4)) euclid-distance))
     ;(println "fail")))
