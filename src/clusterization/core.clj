@@ -22,22 +22,28 @@
   [p1 p2]
   (Math/sqrt (reduce + (map #(Math/pow % 2) (map - p1 p2)))))
 
+(defn sum-potentials
+  [p
+   points
+   distance-fn
+   alpha]
+  (reduce + (map #(Math/exp (* (- alpha) %)) (map #(distance-fn p %) points))))
+
 (defn get-point-potential
   [p
    points
    distance-fn
-   coef]
+   coef
+   potential-fn]
   (list
-   (reduce +
-           (map #(Math/exp (* (- coef) %))
-                (map #(distance-fn p %) points)))
+    (potential-fn p points distance-fn coef)
    p))
 
 (defn get-potentials
   [points
    distance-fn
    alpha]
-  (map #(get-point-potential % points distance-fn alpha) points))
+  (map #(get-point-potential % points distance-fn alpha sum-potentials) points))
 
 (defn update-potentials
   [potentials
@@ -57,8 +63,9 @@
         beta (/ 4 (Math/pow radius-b 2))
         potentials (get-potentials points distance-fn alpha)
         first-core (apply max-key first potentials)]
-    (println first-core)
-    (update-potentials potentials first-core beta distance-fn)))
+    (let [new-potentials (update-potentials potentials first-core beta distance-fn)
+          ]
+      (println new-potentials))))
 
 (defn -main
   [& args]
