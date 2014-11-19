@@ -15,32 +15,30 @@
     (doall (map parse-str (line-seq rdr)))))
 
 (defn hamming-distance
-  [x1 x2]
-  (println "hamming"))
+  [p1 p2]
+  (reduce + (map #(if (= %1 %2) 0 1) p1 p2)))
 
 (defn euclid-distance
-  [x1 x2]
-  (println "euclid"))
+  [p1 p2]
+  (Math/sqrt (reduce + (map #(Math/pow % 2) (map - p1 p2)))))
 
-(defn count-potentials
-  [data-point alpha]
-  (println "count potentials"))
+(defn get-point-potential
+  [p
+   points
+   distance-fn
+   alpha]
+  (reduce + (map #(Math/exp (* (- alpha) %)) (map #(distance-fn p %) points))))
 
-(defn clusterize
-  [data-points distance]
-  (let [radius-a 1.5
-        radius-b (* radius-a 1.5)
-        alpha (/ 4 (* radius-a radius-a))
-        beta (/ 4 (* radius-b radius-b))
-        upper-threshold 0.5
-        lower-threshold 0.15
-        potentials (count-potentials data-points alpha)]
-    (println "clusterize")))
+(defn get-potentials
+  [points
+   distance-fn]
+  (println points))
 
 (defn -main
   [& args]
-  (if (>= (count args) 2)
-    (let [data-points (read-file (first args))
-          distance (if (= (last args) "hamming") hamming-distance euclid-distance)]
-      (clusterize data-points distance))
-    (println "fail")))
+  ;(if (>= (count args) 2)
+    ;(let [data-points (read-file (first args))
+     ;     distance (if (= (last args) "hamming") hamming-distance euclid-distance)]
+      ;(clusterize data-points distance))
+      (get-potentials '((0 3) (1 5) (2 4)) euclid-distance))
+    ;(println "fail")))
