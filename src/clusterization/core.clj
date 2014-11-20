@@ -22,28 +22,22 @@
   [p1 p2]
   (Math/sqrt (reduce + (map #(Math/pow % 2) (map - p1 p2)))))
 
-(defn sum-potentials
-  [p
-   points
-   distance-fn
-   alpha]
-  (reduce + (map #(Math/exp (* (- alpha) %)) (map #(distance-fn p %) points))))
-
 (defn get-point-potential
   [p
    points
    distance-fn
-   coef
-   potential-fn]
+   coef]
   (list
-    (potential-fn p points distance-fn coef)
+   (reduce +
+           (map #(Math/exp (* (- coef) %))
+                (map #(distance-fn p %) points)))
    p))
 
 (defn get-potentials
   [points
    distance-fn
    alpha]
-  (map #(get-point-potential % points distance-fn alpha sum-potentials) points))
+  (map #(get-point-potential % points distance-fn alpha) points))
 
 (defn update-potentials
   [potentials
@@ -52,7 +46,10 @@
    distance-fn]
   (let [core-potential (first core)
         core-point (last core)]
-    (map #(- (first %) (* core-potential (Math/exp (distance-fn core-point (last %))))) potentials)))
+    (map #(list
+           (- (first %) (* core-potential (Math/exp (distance-fn core-point (last %)))))
+           (last %))
+         potentials)))
 
 (defn clusterize
   [points
@@ -63,9 +60,8 @@
         beta (/ 4 (Math/pow radius-b 2))
         potentials (get-potentials points distance-fn alpha)
         first-core (apply max-key first potentials)]
-    (let [new-potentials (update-potentials potentials first-core beta distance-fn)
-          ]
-      (println new-potentials))))
+    (println potentials)
+    (update-potentials potentials first-core beta distance-fn)))
 
 (defn -main
   [& args]
