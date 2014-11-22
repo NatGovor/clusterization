@@ -6,7 +6,7 @@
 
 (defn parse-str
   [str]
-  (map #(Integer/parseInt %)
+  (map #(Double/parseDouble %)
        (drop-last (string/split str #","))))
 
 (defn read-file
@@ -26,11 +26,9 @@
   [p
    points
    distance-fn
-   coef]
+   alpha]
   (list
-   (reduce +
-           (map #(Math/exp (* (- coef) %))
-                (map #(distance-fn p %) points)))
+   (reduce + (map #(Math/exp (- (* alpha (distance-fn % p)))) points))
    p))
 
 (defn get-potentials
@@ -62,7 +60,7 @@
 (defn clusterize
   [points
    distance-fn]
-  (let [radius-a 1.5
+  (let [radius-a 3
         radius-b (* radius-a 1.5)
         alpha (/ 4 (Math/pow radius-a 2))
         beta (/ 4 (Math/pow radius-b 2))
@@ -71,16 +69,16 @@
         potentials (get-potentials points distance-fn alpha)
         first-core (apply max-key first potentials)
         first-core-potential (first first-core)]
-    (println potentials)
-    (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    ;(println potentials)
+    ;(println "!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     (loop [potentials (update-potentials potentials first-core beta distance-fn)
            cores (list (last first-core))]
       (let [new-core (apply max-key first potentials)
             new-core-potential (first new-core)
             new-core-point (last new-core)]
-        (println potentials)
-        (println new-core)
-        (println "-----------------------------")
+        ;(println potentials)
+        ;(println new-core)
+        ;(println "-----------------------------")
         (cond
          (> new-core-potential (* upper-threshold first-core-potential))
            ; accept new cluster center
@@ -90,11 +88,11 @@
            cores
          :else
            (let [dmin (apply min (map #(distance-fn new-core-point %) cores))]
-             (if (>= (+ (/ dmin radius-a) (/ new-core-potential first-core-potential)))
+             (if (>= (+ (/ dmin radius-a) (/ new-core-potential first-core-potential)) 1)
                ; accept new cluster center
                (recur (update-potentials potentials new-core beta distance-fn) (conj cores new-core-point))
                ; reject new-core and set it potential to 0.5
-               (recur (reject-core potentials new-core) cores))))))))
+              (recur (reject-core potentials new-core) cores))))))))
 
 (defn -main
   [& args]
