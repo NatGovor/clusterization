@@ -2,6 +2,7 @@
   (:gen-class)
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as string])
+  (:require [clojure.tools.cli :refer [cli]])
   (import java.lang.Math))
 
 (defn parse-str
@@ -60,7 +61,7 @@
 (defn clusterize
   [points
    distance-fn]
-  (let [radius-a 3
+  (let [radius-a 2.5
         radius-b (* radius-a 1.5)
         alpha (/ 4 (Math/pow radius-a 2))
         beta (/ 4 (Math/pow radius-b 2))
@@ -69,16 +70,11 @@
         potentials (get-potentials points distance-fn alpha)
         first-core (apply max-key first potentials)
         first-core-potential (first first-core)]
-    ;(println potentials)
-    ;(println "!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     (loop [potentials (update-potentials potentials first-core beta distance-fn)
            cores (list (last first-core))]
       (let [new-core (apply max-key first potentials)
             new-core-potential (first new-core)
             new-core-point (last new-core)]
-        ;(println potentials)
-        ;(println new-core)
-        ;(println "-----------------------------")
         (cond
          (> new-core-potential (* upper-threshold first-core-potential))
            ; accept new cluster center
@@ -92,14 +88,13 @@
                ; accept new cluster center
                (recur (update-potentials potentials new-core beta distance-fn) (conj cores new-core-point))
                ; reject new-core and set it potential to 0.5
-              (recur (reject-core potentials new-core) cores))))))))
+               (recur (reject-core potentials new-core) cores))))))))
 
 (defn -main
   [& args]
-  ;(if (>= (count args) 2)
-    ;(let [data-points (read-file (first args))
-     ;     distance (if (= (last args) "hamming") hamming-distance euclid-distance)]
-      ;(clusterize data-points distance))
-      ;(clusterize '((0 3) (1 5) (2 4)) euclid-distance))
-      (clusterize (read-file "resources/butterfly.txt") euclid-distance))
-    ;(println "fail")))
+  (let [[opts args] (cli args ["-f" "--file"   :default "resources/butterfly.txt"]
+                             ["-e" "--euclid"]
+                             ["-h" "--hamming"])]
+    (if (:euclid opts)
+      (println (clusterize (read-file (:file opts)) euclid-distance))
+      (println (clusterize (read-file (:file opts)) hamming-distance)))))
