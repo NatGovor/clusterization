@@ -3,9 +3,9 @@ clusterization
 
 Example of using:
 
-    lein run -f resources/butterfly.txt -e true
+    lein run --file=resources/butterfly.txt --euclid=true
 
 or
 
-    lein run -f resources/butterfly.txt -h true
+    lein run --file=resources/butterfly.txt --hamming=true
 

@@ -61,7 +61,7 @@
 (defn clusterize
   [points
    distance-fn]
-  (let [radius-a 2.5
+  (let [radius-a 3
         radius-b (* radius-a 1.5)
         alpha (/ 4 (Math/pow radius-a 2))
         beta (/ 4 (Math/pow radius-b 2))
