@@ -12,8 +12,9 @@
 
 (defn read-file
   [file-name]
-  (with-open [rdr (io/reader file-name)]
-    (doall (map parse-str (line-seq rdr)))))
+  (into []
+        (with-open [rdr (io/reader file-name)]
+          (doall (map parse-str (line-seq rdr))))))
 
 (defn hamming-distance
   [p1 p2]
@@ -94,7 +95,9 @@
   [& args]
   (let [[opts args] (cli args ["-f" "--file"   :default "resources/butterfly.txt"]
                              ["-e" "--euclid"]
-                             ["-h" "--hamming"])]
-    (if (:euclid opts)
-      (println (clusterize (read-file (:file opts)) euclid-distance))
-      (println (clusterize (read-file (:file opts)) hamming-distance)))))
+                             ["-h" "--hamming"])
+        file-data (read-file (:file opts))
+        distance-fn (if (:euclid opts) euclid-distance hamming-distance)
+        cores (clusterize file-data euclid-distance)
+        results (map #(list (inc (.indexOf file-data %)) %) cores)]
+    (println (string/join "\n" results))))
